@@ -34,8 +34,7 @@ gamma = 0.9  # discount factor
 # Function to calculate the value for a single state using the Bellman optimality equation
 def calculate_value(state):
     return max(
-        sum(p * (r + gamma * V[s]) for p, s, r in transitions[state][action])
-        for action in actions
+        sum(p * (r + gamma * V[s]) for p, s, r in transitions[state][action]) for action in actions
     )
 
 # Update the state values based on the policy until convergence
