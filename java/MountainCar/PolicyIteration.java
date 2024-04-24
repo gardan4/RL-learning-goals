@@ -42,6 +42,7 @@ public class PolicyIteration {
 
                 game.undo(ACTIONS[policy[s]]);
             }
+            System.out.println("Delta: " + delta);
         } while (delta >= THETA);
     }
 
@@ -71,6 +72,7 @@ public class PolicyIteration {
             if (bestAction != oldAction) {
                 policy[s] = bestAction;
                 policyChanged = true; // Mark the flag as true since the policy has been improved
+                System.out.println("Policy changed at state " + s + " from " + oldAction + " to " + bestAction);
             }
         }
 
