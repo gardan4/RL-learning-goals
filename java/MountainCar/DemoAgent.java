@@ -5,9 +5,15 @@ public class DemoAgent {
 
     private static MountainCarEnv game;
     private static double[] gamestate;
+    private static PolicyIteration policyIteration;
 
     public static void main(String[] args) {
         game = new MountainCarEnv(MountainCarEnv.RENDER);
+        policyIteration = new PolicyIteration(game);
+        policyIteration.iterate();
+        System.out.println("The optimal policy is: " + Arrays.toString(policyIteration.getPolicy()));
+        int[] optimalPolicy = policyIteration.getPolicy();
+
         //Running 100 episodes
         for (int i=0; i<10; i++) {
             gamestate = game.randomReset();
@@ -15,13 +21,11 @@ public class DemoAgent {
             while (gamestate[0] == 0) { // Game is not over yet
                 System.out.println("The car's position is " + gamestate[2]);
                 System.out.println("The car's velocity is " + gamestate[3]);
-                if (gamestate[3] >= 0.0) {
-                    System.out.println("I will try to go further forward");
-                    gamestate = game.step(MountainCarEnv.FORWARD);
-                } else if (gamestate[3] < 0.0) {
-                    System.out.println("I will try to continue going backwards");
-                    gamestate = game.step(MountainCarEnv.REVERSE);
+                int action = optimalPolicy[(int)gamestate[2]];
+                for (int s = 0; s < optimalPolicy.length; s++) {
+                    System.out.println("State " + s + ": Action " + optimalPolicy[s]);
                 }
+                gamestate = game.step(action);
                 System.out.println("The gamestate passed back to me was: " + Arrays.toString(gamestate));
                 System.out.println("I received a reward of " + gamestate[1]);
             }
