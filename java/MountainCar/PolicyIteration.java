@@ -2,7 +2,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 public class PolicyIteration {
-    private static final double THETA = 0.001;
+    private static final double THETA = 0.01;
     private static final double GAMMA = 0.9;
     private static final int NUM_STATES = 100;
     private static final int NUM_ACTIONS = 3;
@@ -64,7 +64,7 @@ public class PolicyIteration {
                     bestAction = a;
                 }
 
-                game.undo(a); // Undo the step to return to the original state
+                game.undo(ACTIONS[a]); // Undo the step to return to the original state
             }
 
             // Update the policy with the best action if it is better than the current one
@@ -83,17 +83,14 @@ public class PolicyIteration {
             policyEvaluation();
             policyStable = !policyImprovement();
         } while (!policyStable);
-    }
-
-    public double[] getValueFunction() {
-        return V;
+        System.out.println("The optimal policy is: " + Arrays.toString(policy));
     }
 
     public int[] getPolicy() {
         return policy;
     }
 
-    private int discretizeState(double[] state) {
+    int discretizeState(double[] state) {
         int[] positionTiles = positionCoder.getTiles(state[0]);
         int[] velocityTiles = velocityCoder.getTiles(state[1]);
         int combinedHash = Arrays.hashCode(positionTiles) * 31 + Arrays.hashCode(velocityTiles);

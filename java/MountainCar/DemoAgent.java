@@ -21,10 +21,10 @@ public class DemoAgent {
             while (gamestate[0] == 0) { // Game is not over yet
                 System.out.println("The car's position is " + gamestate[2]);
                 System.out.println("The car's velocity is " + gamestate[3]);
-                int action = optimalPolicy[(int)gamestate[2]];
-                for (int s = 0; s < optimalPolicy.length; s++) {
-                    System.out.println("State " + s + ": Action " + optimalPolicy[s]);
-                }
+                // discretize the state
+                int state = policyIteration.discretizeState(gamestate);
+                int action = optimalPolicy[state];
+
                 gamestate = game.step(action);
                 System.out.println("The gamestate passed back to me was: " + Arrays.toString(gamestate));
                 System.out.println("I received a reward of " + gamestate[1]);
