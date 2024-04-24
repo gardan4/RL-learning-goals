@@ -34,7 +34,8 @@ public class PolicyIteration {
         Random rand = new Random();
         for (int s = 0; s < NUM_STATES; s++) {
             V[s] = rand.nextDouble(); // Initialize value function randomly
-            policy[s] = rand.nextInt(NUM_ACTIONS); // Initialize policy randomly
+            // initialize policy so that if velocity is negative, then reverse, else forward
+            policy[s] = (s % VELOCITY_BINS < VELOCITY_BINS / 2) ? 0 : 2;
         }
     }
 
@@ -46,6 +47,7 @@ public class PolicyIteration {
                 double[] gamestate = game.step(ACTIONS[policy[s]]);
                 double v = V[s];
                 int s_prime = discretizeState(gamestate);
+                System.out.println( s_prime);
 
                 V[s] = 1 * (gamestate[1] + GAMMA * V[s_prime]);
                 delta = Math.max(delta, Math.abs(v - V[s]));
@@ -103,8 +105,8 @@ public class PolicyIteration {
     }
 
     int discretizeState(double[] state) {
-        // Assume state[0] is position and state[1] is velocity
         int positionIndex = (int)((state[2] - POSITION_MIN) / POSITION_BIN_WIDTH);
+        System.out.println("Position Index: " + state[2]);
         int velocityIndex = (int)((state[3] - VELOCITY_MIN) / VELOCITY_BIN_WIDTH);
 
         // Ensure the indices are within the range [0, BINS-1]
