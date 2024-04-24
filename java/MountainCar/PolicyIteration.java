@@ -1,18 +1,30 @@
 import java.util.Arrays;
+import java.util.Random;
 
 public class PolicyIteration {
+    private static final double THETA = 0.0001;
+    private static final double GAMMA = 0.9;
+    private static final int NUM_STATES = 100;
+    private static final int NUM_ACTIONS = 3;
+    private static final int[] ACTIONS = {MountainCarEnv.REVERSE, MountainCarEnv.NOTHING, MountainCarEnv.FORWARD};
 
-    private static final double THETA = 0.0001; // A small positive number
-    private static final double GAMMA = 0.9; // Discount factor
-
-    private MountainCarEnv game;
-    private double[][] V; // Value function
-    private int[][] policy; // Current policy
+    private final MountainCarEnv game;
+    private final double[] V;
+    private final int[] policy;
+    private final TileCoder positionCoder;
+    private final TileCoder velocityCoder;
 
     public PolicyIteration(MountainCarEnv game) {
         this.game = game;
-        this.V = new double[game.getNumStates()][game.getNumActions()];
-        this.policy = new int[game.getNumStates()][game.getNumActions()];
+        this.V = new double[NUM_STATES];
+        this.policy = new int[NUM_STATES];
+        this.positionCoder = new TileCoder(10, 10, MountainCarEnv.MIN_POS, MountainCarEnv.MAX_POS);
+        this.velocityCoder = new TileCoder(10, 10, -MountainCarEnv.MAX_SPEED, MountainCarEnv.MAX_SPEED);
+
+        Random rand = new Random();
+        for (int s = 0; s < NUM_STATES; s++) {
+            policy[s] = rand.nextInt(NUM_ACTIONS); // Initialize policy randomly
+        }
     }
 
     public void iterate() {
@@ -24,44 +36,53 @@ public class PolicyIteration {
             double delta;
             do {
                 delta = 0;
-                for (int s = 0; s < game.getNumStates(); s++) {
-                    double v = V[s][policy[s][0]];
-                    double sum = 0;
-                    for (int a = 0; a < game.getNumActions(); a++) {
-                        double[] gamestate = game.step(a);
-                        sum += game.getTransitionProbability(s, a, gamestate) * (game.getReward(s, a, gamestate) + GAMMA * V[gamestate[0]][policy[gamestate[0]][0]]);
-                    }
-                    V[s][policy[s][0]] = sum;
-                    delta = Math.max(delta, Math.abs(v - V[s][policy[s][0]]));
+                for (int s = 0; s < NUM_STATES; s++) {
+                    double v = V[s];
+                    double[] gamestate = game.step(ACTIONS[policy[s]]);
+                    int nextState = discretizeState(gamestate);
+                    V[s] = game.getReward() + GAMMA * V[nextState];
+                    delta = Math.max(delta, Math.abs(v - V[s]));
+                    game.undo(ACTIONS[policy[s]]); // Undo the step to return to the original state
                 }
+                System.out.println(delta);
             } while (delta >= THETA);
 
             // Policy Improvement
-            for (int s = 0; s < game.getNumStates(); s++) {
-                int oldAction = policy[s][0];
+            for (int s = 0; s < NUM_STATES; s++) {
+                int oldAction = policy[s];
                 double maxActionValue = Double.NEGATIVE_INFINITY;
-                for (int a = 0; a < game.getNumActions(); a++) {
-                    double actionValue = 0;
-                    for (int sPrime = 0; sPrime < game.getNumStates(); sPrime++) {
-                        actionValue += game.getTransitionProbability(s, a, sPrime) * (game.getReward(s, a, sPrime) + GAMMA * V[sPrime][policy[sPrime][0]]);
-                    }
+                int chosenAction = oldAction;
+                for (int a = 0; a < ACTIONS.length; a++) {
+                    double[] gamestate = game.step(ACTIONS[a]);
+                    int nextState = discretizeState(gamestate);
+                    double actionValue = game.getReward() + GAMMA * V[nextState];
                     if (actionValue > maxActionValue) {
                         maxActionValue = actionValue;
-                        policy[s][0] = a;
+                        chosenAction = a;
                     }
+                    game.undo(ACTIONS[a]); // Undo the step to return to the original state
                 }
-                if (oldAction != policy[s][0]) {
+                policy[s] = chosenAction;
+
+                if (oldAction != policy[s]) {
                     policyStable = false;
                 }
             }
         } while (!policyStable);
     }
 
-    public double[][] getValueFunction() {
+    public double[] getValueFunction() {
         return V;
     }
 
-    public int[][] getPolicy() {
+    public int[] getPolicy() {
         return policy;
+    }
+
+    private int discretizeState(double[] state) {
+        int[] positionTiles = positionCoder.getTiles(state[0]);
+        int[] velocityTiles = velocityCoder.getTiles(state[1]);
+        int combinedHash = Arrays.hashCode(positionTiles) * 31 + Arrays.hashCode(velocityTiles);
+        return Math.abs(combinedHash % NUM_STATES); // Ensure index is non-negative and within bounds
     }
 }
