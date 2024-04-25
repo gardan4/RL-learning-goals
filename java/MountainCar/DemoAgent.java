@@ -4,38 +4,40 @@ import java.util.Arrays;
 public class DemoAgent {
 
     private static MountainCarEnv game;
+    private static MountainCarEnv gametest;
     private static double[] gamestate;
     private static PolicyIteration policyIteration;
 
     public static void main(String[] args) {
-        game = new MountainCarEnv(MountainCarEnv.RENDER);
-        policyIteration = new PolicyIteration(game);
+        policyIteration = new PolicyIteration();
         policyIteration.iterate();
-        System.out.println("The optimal policy is: " + Arrays.toString(policyIteration.getPolicy()));
         int[] optimalPolicy = policyIteration.getPolicy();
+        game = new MountainCarEnv(MountainCarEnv.RENDER);
 
         //Running 100 episodes
-        for (int i=0; i<10; i++) {
+        for (int i=0; i<5; i++) {
             gamestate = game.randomReset();
-            System.out.println("The initial gamestate is: " + Arrays.toString(gamestate));
-            while (gamestate[0] == 0) { // Game is not over yet
-                System.out.println("The car's position is " + gamestate[2]);
-                System.out.println("The car's velocity is " + gamestate[3]);
+            long startTime = System.currentTimeMillis();
+            int[] count = new int[3];
+            while (gamestate[0] == 0 && System.currentTimeMillis() < startTime + (1000 * 30)) {
                 // discretize the state
-                int state = policyIteration.discretizeState(gamestate);
+                int state = PolicyIteration.getIndicesFromState(gamestate[2], gamestate[3]);
                 int action = optimalPolicy[state];
 
                 gamestate = game.step(action);
-                System.out.println("The gamestate passed back to me was: " + Arrays.toString(gamestate));
-                System.out.println("I received a reward of " + gamestate[1]);
+               // count the type of actions taken
+
+                // count action
+                count[action + 1]++;
             }
-            System.out.println();
+            //print count of actions
+            System.out.println("Number of reverse: " + count[0] + ", neutral: " + count[1] + ", forward: " + count[2]);
         }
         try {
-            double[][] valuesToShow = new double[1000][1000];
-            for (int i=0; i<1000; i++)
-                for (int j=0; j<1000; j++)
-                    valuesToShow[i][j] = Math.sin(0.00002*i*j);
+            double[][] valuesToShow = new double[PolicyIteration.NUM_POSITIONS][PolicyIteration.NUM_POSITIONS];
+            for (int i = 0; i< PolicyIteration.NUM_POSITIONS; i++)
+                for (int j=0; j< PolicyIteration.NUM_VELOCITIES; j++)
+                    valuesToShow[i][j] = policyIteration.getV()[i * PolicyIteration.NUM_POSITIONS + j];
             HeatMapWindow hm = new HeatMapWindow(valuesToShow);
             hm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             hm.setSize(600,600);

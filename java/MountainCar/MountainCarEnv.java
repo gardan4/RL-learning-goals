@@ -81,7 +81,7 @@ public class MountainCarEnv {
 
 	public double getReward() {
 		if (position>GOAL_POS)
-			return 0.0;
+			return 0;
 			// Possible negative reward for hitting back wall
 			//else if (position==MIN_POS)
 			//	return -50;
