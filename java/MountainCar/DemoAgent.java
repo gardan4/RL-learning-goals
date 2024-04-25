@@ -6,38 +6,43 @@ public class DemoAgent {
     private static MountainCarEnv game;
     private static MountainCarEnv gametest;
     private static double[] gamestate;
-    private static PolicyIteration policyIteration;
+    private static ValueIteration ValueIteration;
 
     public static void main(String[] args) {
-        policyIteration = new PolicyIteration();
-        policyIteration.iterate();
-        int[] optimalPolicy = policyIteration.getPolicy();
+        ValueIteration vi = new ValueIteration();
+        vi.iterate();
+        int[][] optimalPolicy = vi.Policy;
+        System.out.println("Optimal policy: ");
+        for (int i = 0; i < ValueIteration.NUM_POSITIONS; i++) {
+            for (int j = 0; j < ValueIteration.NUM_VELOCITIES; j++) {
+                System.out.print(optimalPolicy[i][j] + " ");
+            }
+            System.out.println();
+        }
         game = new MountainCarEnv(MountainCarEnv.RENDER);
-
         //Running 100 episodes
-        for (int i=0; i<5; i++) {
+        for (int i=0; i<10; i++) {
             gamestate = game.randomReset();
+//            System.out.println("The initial gamestate is: " + Arrays.toString(gamestate));
             long startTime = System.currentTimeMillis();
-            int[] count = new int[3];
-            while (gamestate[0] == 0 && System.currentTimeMillis() < startTime + (1000 * 30)) {
+            while (gamestate[0] == 0 && System.currentTimeMillis() < startTime + (1000 * 15)) {
+//                System.out.println("The car's position is " + gamestate[2]);
+//                System.out.println("The car's velocity is " + gamestate[3]);
                 // discretize the state
-                int state = PolicyIteration.getIndicesFromState(gamestate[2], gamestate[3]);
-                int action = optimalPolicy[state];
+                int[] state = ValueIteration.getIndicesFromState(gamestate[2], gamestate[3]);
+                int action = optimalPolicy[state[0]][state[1]];
 
                 gamestate = game.step(action);
-               // count the type of actions taken
-
-                // count action
-                count[action + 1]++;
+                System.out.println("Action: " + action);
+//                System.out.println("I received a reward of " + gamestate[1]);
             }
-            //print count of actions
-            System.out.println("Number of reverse: " + count[0] + ", neutral: " + count[1] + ", forward: " + count[2]);
+            System.out.println();
         }
         try {
-            double[][] valuesToShow = new double[PolicyIteration.NUM_POSITIONS][PolicyIteration.NUM_POSITIONS];
-            for (int i = 0; i< PolicyIteration.NUM_POSITIONS; i++)
-                for (int j=0; j< PolicyIteration.NUM_VELOCITIES; j++)
-                    valuesToShow[i][j] = policyIteration.getV()[i * PolicyIteration.NUM_POSITIONS + j];
+            double[][] valuesToShow = new double[1000][1000];
+            for (int i = 0; i< ValueIteration.NUM_POSITIONS; i++)
+                for (int j=0; j< ValueIteration.NUM_VELOCITIES; j++)
+                    valuesToShow[i][j] = vi.V[i][j];
             HeatMapWindow hm = new HeatMapWindow(valuesToShow);
             hm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             hm.setSize(600,600);
