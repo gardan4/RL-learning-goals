@@ -8,7 +8,7 @@ public class PolicyIteration {
     private static final int[] ACTIONS = {MountainCarEnv.NOTHING, MountainCarEnv.FORWARD, MountainCarEnv.REVERSE};
     private static final double[] POSITION_RANGE = {MountainCarEnv.MIN_POS, MountainCarEnv.MAX_POS};
     private static final double[] VELOCITY_RANGE = {-MountainCarEnv.MAX_SPEED, MountainCarEnv.MAX_SPEED};
-    public static final int NUM_POSITIONS = 2000;
+    public static final int NUM_POSITIONS = 1000;
     public static final int NUM_VELOCITIES = 1000;
     private static final int NUM_STATES = NUM_POSITIONS*NUM_VELOCITIES;
     private static final double POSITION_STEP = calculateStep(POSITION_RANGE[0], POSITION_RANGE[1], NUM_POSITIONS);
@@ -102,7 +102,7 @@ public class PolicyIteration {
                     bestAction = ACTIONS[a];
                 }
 
-                //apparently game.undo has bugs so we need to reset the state
+                //apparently game.undo has bugs, so we need to reset the state
                 game.setState(oldgamestate[2], oldgamestate[3]);
             }
 
