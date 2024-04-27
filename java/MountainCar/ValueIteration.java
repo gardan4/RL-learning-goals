@@ -1,14 +1,14 @@
 import java.util.Random;
 
 public class ValueIteration {
-    private static final double THETA = 0.000001;
+    private static final double THETA = 0.00001;
     private static final double GAMMA = 0.90;
 
     private static final int NUM_ACTIONS = 3;
     private static final int[] ACTIONS = {MountainCarEnv.REVERSE, MountainCarEnv.NOTHING, MountainCarEnv.FORWARD};
     private static final double[] POSITION_RANGE = {MountainCarEnv.MIN_POS, MountainCarEnv.MAX_POS};
     private static final double[] VELOCITY_RANGE = {-MountainCarEnv.MAX_SPEED, MountainCarEnv.MAX_SPEED};
-    public static final int NUM_POSITIONS = 1000;
+    public static final int NUM_POSITIONS = 2000;
     public static final int NUM_VELOCITIES = 1000;
     private static final double POSITION_STEP = calculateStep(POSITION_RANGE[0], POSITION_RANGE[1], NUM_POSITIONS);
     private static final double VELOCITY_STEP = calculateStep(VELOCITY_RANGE[0], VELOCITY_RANGE[1], NUM_VELOCITIES);
@@ -32,7 +32,7 @@ public class ValueIteration {
     }
 
     public void iterate() {
-        for (int i = 0; i < 2000; i++) {
+        for (int i = 0; i < 1000; i++) {
             boolean converged = valueIteration();
 //            if (!converged) {
 //                break;

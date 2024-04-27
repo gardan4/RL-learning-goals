@@ -39,7 +39,7 @@ public class DemoAgent {
             System.out.println();
         }
         try {
-            double[][] valuesToShow = new double[1000][1000];
+            double[][] valuesToShow = new double[ValueIteration.NUM_POSITIONS][ValueIteration.NUM_VELOCITIES];
             for (int i = 0; i< ValueIteration.NUM_POSITIONS; i++)
                 for (int j=0; j< ValueIteration.NUM_VELOCITIES; j++)
                     valuesToShow[i][j] = vi.V[i][j];
