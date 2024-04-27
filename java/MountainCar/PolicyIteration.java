@@ -102,6 +102,7 @@ public class PolicyIteration {
                     bestAction = ACTIONS[a];
                 }
 
+                //apparently game.undo has bugs so we need to reset the state
                 game.setState(oldgamestate[2], oldgamestate[3]);
             }
 
