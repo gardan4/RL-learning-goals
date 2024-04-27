@@ -1,15 +1,15 @@
 import java.util.Random;
 
 public class PolicyIteration {
-    private static final double THETA = 0.01;
-    private static final double GAMMA = 0.9;
+    private static final double THETA = 0.001;
+    private static final double GAMMA = 0.99;
 
     private static final int NUM_ACTIONS = 3;
     private static final int[] ACTIONS = {MountainCarEnv.NOTHING, MountainCarEnv.FORWARD, MountainCarEnv.REVERSE};
     private static final double[] POSITION_RANGE = {MountainCarEnv.MIN_POS, MountainCarEnv.MAX_POS};
     private static final double[] VELOCITY_RANGE = {-MountainCarEnv.MAX_SPEED, MountainCarEnv.MAX_SPEED};
-    public static final int NUM_POSITIONS = 250;
-    public static final int NUM_VELOCITIES = 250;
+    public static final int NUM_POSITIONS = 2000;
+    public static final int NUM_VELOCITIES = 1000;
     private static final int NUM_STATES = NUM_POSITIONS*NUM_VELOCITIES;
     private static final double POSITION_STEP = calculateStep(POSITION_RANGE[0], POSITION_RANGE[1], NUM_POSITIONS);
     private static final double VELOCITY_STEP = calculateStep(VELOCITY_RANGE[0], VELOCITY_RANGE[1], NUM_VELOCITIES);
@@ -78,10 +78,11 @@ public class PolicyIteration {
     public boolean policyImprovement() {
         boolean policyChanged = false;
         double[] gamestate;
+        int changed = 0;
         for (int s = 0; s < NUM_STATES; s++) {
             // Get the position and velocity from the state index
             double[] discretizedstate = getDiscretizedStateFromIndices(s);
-            gamestate = game.setState(discretizedstate[0], discretizedstate[1]);
+            game.setState(discretizedstate[0], discretizedstate[1]);
 
             int oldAction = policy[s];
             double bestActionValue = Double.NEGATIVE_INFINITY;
@@ -90,6 +91,7 @@ public class PolicyIteration {
             // Examine each possible action to find the best for the current state
             for (int a = 0; a < NUM_ACTIONS; a++) {
                 // Take the action and observe the next state
+                double[] oldgamestate = game.getState();
                 gamestate = game.step(ACTIONS[a]);
                 int nextState = getIndicesFromState(gamestate[2], gamestate[3]);
                 double actionValue = gamestate[1] + GAMMA * V[nextState]; // Calculate the value of taking action 'a'
@@ -100,14 +102,16 @@ public class PolicyIteration {
                     bestAction = ACTIONS[a];
                 }
 
-                game.undo(ACTIONS[a]); // Undo the step to return to the original state
+                game.setState(oldgamestate[2], oldgamestate[3]);
             }
 
             if (bestAction != oldAction) {
                 policy[s] = bestAction;
                 policyChanged = true; // Mark the flag as true since the policy has been improved
+                changed++;
             }
         }
+        System.out.println("Changed: " + changed);
         return policyChanged; // Return whether the policy was improved or not
     }
 
