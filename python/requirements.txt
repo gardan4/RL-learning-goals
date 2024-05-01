@@ -1,0 +1,8 @@
+matplotlib.colors
+matplotlib.pyplot
+matplotlib
+matplotlib.tri
+gymnasium
+itertools
+seaborn
+tqdm
