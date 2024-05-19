@@ -3,6 +3,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import os
 
@@ -14,23 +15,16 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class PolicyNetwork(nn.Module):
     def __init__(self, input_dim, output_dim):
         super(PolicyNetwork, self).__init__()
-        # hidden layers
-        self.fc1 = nn.Linear(input_dim, 256)
-        self.fc2 = nn.Linear(256, 128)
-        self.fc3 = nn.Linear(128, 64)
-        self.fc4 = nn.Linear(64, 24)
-        # Give the mean and std a separate hidden layer
-        self.fc_mean = nn.Linear(24, output_dim)
-        self.fc_log_std = nn.Linear(24, output_dim)
+        self.fc1 = nn.Linear(input_dim, 64)
+        self.fc2 = nn.Linear(64, 24)
+        self.fc3 = nn.Linear(24, output_dim)
+        self.log_std = nn.Parameter(torch.zeros(output_dim))  # Learnable log standard deviation
 
     def forward(self, x):
-        x = torch.relu(self.fc1(x))
-        x = torch.relu(self.fc2(x))
-        x = torch.relu(self.fc3(x))
-        x = torch.relu(self.fc4(x))
-        mean = torch.tanh(self.fc_mean(x))  # Ensure mean is in the range [-1, 1]
-        log_std = self.fc_log_std(x)
-        std = torch.nn.functional.softplus(log_std)  # Ensure std is positive and numerically stable
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        mean = torch.tanh(self.fc3(x))
+        std = torch.exp(self.log_std)
         return mean, std
 
     # Saving the model
@@ -81,9 +75,9 @@ def play_game(policy_net, env, num_episodes=5, output_dir="rendered_frames"):
         feature_vector = tile_coder.get_feature_vector(state[0], state[1])
         feature_vector = torch.tensor(feature_vector, dtype=torch.float32).unsqueeze(0).to(device)
         mean, std = policy_net(feature_vector)
+        print(mean, std)
         normal = torch.distributions.Normal(mean, std)
         action = normal.sample()
-        action = torch.tanh(action)  # Ensure action is in the range [-1, 1]
         log_prob = normal.log_prob(action).sum()
         return action.detach().cpu().numpy().flatten(), log_prob
 
@@ -124,7 +118,7 @@ tile_coder = TileCoder(position_range, velocity_range, num_tilings, num_tiles)
 
 # Create the policy network
 policy_net = PolicyNetwork(feature_vector_size, env.action_space.shape[0]).to(device)
-policy_net.load_model('policy_net.pth')
+policy_net.load_model('policy_net_episode_4300.pth')
 
 # Play the game with the learned policy
 play_game(policy_net, env, num_episodes=5)
